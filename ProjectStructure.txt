@@ -1,0 +1,78 @@
+book-goblin-react/
+├── public/
+│   ├── index.html
+│   ├── Img/
+│   │   ├── page_turning.gif
+│   │   ├── avatar.png
+│   │   ├── BookGoblinMess.png
+│   │   ├── Chilling Goblin 3.0.png
+│   │   └── Searching Goblin.png
+│   └── adminavatar.png
+├── src/
+│   ├── components/
+│   │   ├── Layout/
+│   │   │   ├── Header.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── PageTransition.jsx
+│   │   ├── Dashboard/
+│   │   │   ├── HeroSection.jsx
+│   │   │   ├── StatsCards.jsx
+│   │   │   ├── BookCarousel.jsx
+│   │   │   ├── RecentActivity.jsx
+│   │   │   └── AddBookForm.jsx
+│   │   ├── Books/
+│   │   │   ├── BooksGrid.jsx
+│   │   │   ├── ReadingProgress.jsx
+│   │   │   ├── BookFilters.jsx
+│   │   │   └── BookCard.jsx
+│   │   ├── Discover/
+│   │   │   ├── SearchFilters.jsx
+│   │   │   ├── TrendingBooks.jsx
+│   │   │   ├── RecommendationForm.jsx
+│   │   │   └── BookDetailsModal.jsx
+│   │   ├── Admin/
+│   │   │   ├── AdminNav.jsx
+│   │   │   ├── StatsCards.jsx
+│   │   │   ├── ContentFlags.jsx
+│   │   │   ├── ActivityLog.jsx
+│   │   │   └── UserManagement.jsx
+│   │   ├── Auth/
+│   │   │   ├── LoginForm.jsx
+│   │   │   ├── RegisterForm.jsx
+│   │   │   └── ProfileSetup.jsx
+│   │   └── Common/
+│   │       ├── UserMenu.jsx
+│   │       ├── LoadingSpinner.jsx
+│   │       ├── Notification.jsx
+│   │       └── Modal.jsx
+│   ├── pages/
+│   │   ├── Dashboard.jsx
+│   │   ├── MyBooks.jsx
+│   │   ├── Discover.jsx
+│   │   ├── AdminDashboard.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   └── NotFound.jsx
+│   ├── hooks/
+│   │   ├── useLocalStorage.js
+│   │   ├── useBooks.js
+│   │   ├── useAuth.js
+│   │   └── useAdmin.js
+│   ├── context/
+│   │   ├── AuthContext.jsx
+│   │   ├── BookContext.jsx
+│   │   └── ThemeContext.jsx
+│   ├── utils/
+│   │   ├── api.js
+│   │   ├── validators.js
+│   │   ├── helpers.js
+│   │   └── constants.js
+│   ├── styles/
+│   │   ├── App.css
+│   │   ├── components.css
+│   │   └── animations.css
+│   ├── App.jsx
+│   └── index.js
+├── package.json
+└── README.md
