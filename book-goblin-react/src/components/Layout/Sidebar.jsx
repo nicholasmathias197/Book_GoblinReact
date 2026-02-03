@@ -28,7 +28,8 @@ const Sidebar = () => {
 
   return (
     <nav className="nav-sidebar d-none d-lg-block">
-      <div className="d-flex flex-column gap-3 px-3 py-3">
+      <div className="d-flex flex-column gap-3 px-3 pt-6 py-3"> {/* Added pt-4 here */}
+        <div className="d-flex flex-column gap-3 px-3 pt-5 pb-3"> {/* Changed to pt-5 */}
         {navItems.map((item) => (
           item.external ? (
             <a
@@ -98,6 +99,7 @@ const Sidebar = () => {
           )}
         </div>
       </div>
+      </div> 
     </nav>
   );
 };

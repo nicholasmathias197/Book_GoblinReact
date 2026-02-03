@@ -29,6 +29,18 @@ const MyBooks = () => {
     }
   });
 
+  // Calculate reading stats
+  const readingStats = [
+    { month: 'March 2024', books: 3, pages: 850 },
+    { month: 'February 2024', books: 4, pages: 1200 },
+    { month: 'January 2024', books: 5, pages: 1500 },
+    { month: 'December 2023', books: 6, pages: 1800 }
+  ];
+  
+  const totalBooks = readingStats.reduce((sum, stat) => sum + stat.books, 0);
+  const totalPages = readingStats.reduce((sum, stat) => sum + stat.pages, 0);
+  const goalProgress = Math.min(Math.round((totalBooks / 50) * 100), 100); // Assuming 50 book goal
+
   const getStatusBadge = (status) => {
     const badges = {
       'Reading': { class: 'bg-info', text: 'Reading' },
@@ -63,79 +75,43 @@ const MyBooks = () => {
         <Sidebar />
         <main className="content-area">
           <div className="container-fluid py-4 px-3 px-lg-4">
-            {/* Hero Section */}
-            <div className="hero-image mb-5" style={{ overflow: 'hidden', borderRadius: '1rem' }}>
-              <img 
-                src="/Img/Chilling Goblin 3.0.png" 
-                alt="Chilling Goblin"
-                className="img-fluid"
-                style={{ marginTop: '-250px', marginLeft: '300px', transform: 'translateY(-20px)' }}
-              />
-            </div>
-
-            {/* Reading Stats */}
-            <div className="row g-4 mb-5">
-              <div className="col-lg-6">
-                <div className="card-glass p-4">
-                  <h3 className="text-gradient mb-4">Reading Progress</h3>
-                  <div className="table-responsive">
-                    <table className="table reading-table w-100">
-                      <thead>
-                        <tr>
-                          <th className="text-start">Month</th>
-                          <th className="text-end">Books</th>
-                          <th className="text-end">Pages</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>March 2024</td>
-                          <td className="text-end">3</td>
-                          <td className="text-end">850</td>
-                        </tr>
-                        <tr>
-                          <td>February 2024</td>
-                          <td className="text-end">4</td>
-                          <td className="text-end">1,200</td>
-                        </tr>
-                        <tr>
-                          <td>January 2024</td>
-                          <td className="text-end">5</td>
-                          <td className="text-end">1,500</td>
-                        </tr>
-                        <tr>
-                          <td>December 2023</td>
-                          <td className="text-end">6</td>
-                          <td className="text-end">1,800</td>
-                        </tr>
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-top">
-                          <td className="fw-bold">Total</td>
-                          <td className="text-end fw-bold">18</td>
-                          <td className="text-end fw-bold text-purple">5,350</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                  <div className="mt-3 text-center text-muted small">
-                    <i className="bi bi-graph-up me-1"></i> 12% increase from last quarter
+            {/* Top Row: Hero Image and Reading Goals */}
+            <div className="row g-4 mb-4">
+              {/* Hero Image */}
+              <div className="col-lg-8">
+                <div className="card-glass p-0" style={{ height: '200px', overflow: 'hidden', borderRadius: '1rem' }}>
+                  <div className="position-relative h-100">
+                    <img 
+                      src="/Img/Chilling Goblin 3.0.png" 
+                      alt="Chilling Goblin"
+                      className="position-absolute h-100 w-auto"
+                      style={{ 
+                        objectFit: 'cover',
+                        right: '0',
+                        top: '0'
+                      }}
+                    />
+                    <div className="position-absolute top-0 start-0 p-4" style={{ zIndex: 1 }}>
+                      <h2 className="text-gradient mb-2">My Reading Dashboard</h2>
+                      <p className="text-muted mb-0">Track your reading journey</p>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div className="col-lg-6">
-                <div className="card-glass p-4">
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h3 className="text-gradient mb-0">Reading Goals</h3>
+              {/* Reading Goals Card */}
+              <div className="col-lg-4">
+                <div className="card-glass h-100 p-4 d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h4 className="text-gradient mb-0">Reading Goal</h4>
                     <button className="btn btn-sm btn-outline-primary">
-                      <i className="bi bi-plus"></i> Set Goal
+                      <i className="bi bi-pencil"></i>
                     </button>
                   </div>
                   
-                  <div className="text-center mb-4">
-                    <div className="progress-circle" style={{ width: '150px', height: '150px', margin: '0 auto' }}>
-                      <svg viewBox="0 0 36 36" className="circular-chart">
+                  <div className="text-center flex-grow-1 d-flex flex-column justify-content-center">
+                    <div className="position-relative d-inline-block mb-3" style={{ width: '120px', height: '120px' }}>
+                      <svg viewBox="0 0 36 36" className="circular-chart" style={{ width: '100%', height: '100%' }}>
                         <path
                           className="circle-bg"
                           d="M18 2.0845
@@ -153,114 +129,197 @@ const MyBooks = () => {
                           fill="none"
                           stroke="#9b4dff"
                           strokeWidth="3"
-                          strokeDasharray="65, 100"
+                          strokeDasharray={`${goalProgress}, 100`}
                         />
                       </svg>
-                      <div className="mt-3">
-                        <h4>65%</h4>
-                        <p className="text-muted">18 of 50 books read</p>
+                      <div className="position-absolute top-50 start-50 translate-middle text-center">
+                        <h3 className="mb-0">{goalProgress}%</h3>
                       </div>
+                    </div>
+                    <div>
+                      <h5 className="mb-1">{totalBooks} of 50 books</h5>
+                      <p className="text-muted small mb-0">{totalPages.toLocaleString()} total pages</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Books Section */}
-            <section>
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2 className="text-gradient mb-0">My Books ({sortedBooks.length})</h2>
-                
-                {/* Filters and Sort */}
-                <div className="d-flex gap-3">
-                  <div className="btn-group" role="group">
+            {/* Second Row: Reading Stats and Quick Filters */}
+            <div className="row g-4 mb-4">
+              {/* Reading Progress Card */}
+              <div className="col-lg-8">
+                <div className="card-glass p-4">
+                  <h4 className="text-gradient mb-4">Reading Progress</h4>
+                  <div className="row g-3">
+                    {readingStats.map((stat, index) => (
+                      <div key={index} className="col-sm-6 col-md-3">
+                        <div className="card-stat p-3 text-center">
+                          <div className="text-muted small mb-1">{stat.month}</div>
+                          <div className="d-flex justify-content-center align-items-baseline">
+                            <h3 className="mb-0 me-2">{stat.books}</h3>
+                            <span className="text-muted small">books</span>
+                          </div>
+                          <div className="text-purple small">{stat.pages.toLocaleString()} pages</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-top text-center">
+                    <div className="row">
+                      <div className="col-6">
+                        <div className="text-muted small">Total Books</div>
+                        <h4 className="mb-0">{totalBooks}</h4>
+                      </div>
+                      <div className="col-6">
+                        <div className="text-muted small">Total Pages</div>
+                        <h4 className="mb-0 text-purple">{totalPages.toLocaleString()}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Filters Card */}
+              <div className="col-lg-4">
+                <div className="card-glass h-100 p-4">
+                  <h4 className="text-gradient mb-4">Quick Filters</h4>
+                  <div className="d-flex flex-column gap-2">
                     <button 
-                      className={`btn btn-outline-light ${filter === 'all' ? 'active' : ''}`}
+                      className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
                       onClick={() => setFilter('all')}
                     >
-                      All
+                      <i className="bi bi-collection me-2"></i>
+                      All Books ({books.length})
                     </button>
                     <button 
-                      className={`btn btn-outline-light ${filter === 'Reading' ? 'active' : ''}`}
+                      className={`btn ${filter === 'Reading' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
                       onClick={() => setFilter('Reading')}
                     >
-                      Reading
+                      <i className="bi bi-bookmark-check me-2"></i>
+                      Currently Reading ({books.filter(b => b.status === 'Reading').length})
                     </button>
                     <button 
-                      className={`btn btn-outline-light ${filter === 'Completed' ? 'active' : ''}`}
+                      className={`btn ${filter === 'Completed' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
                       onClick={() => setFilter('Completed')}
                     >
-                      Completed
+                      <i className="bi bi-check-circle me-2"></i>
+                      Completed ({books.filter(b => b.status === 'Completed').length})
                     </button>
                     <button 
-                      className={`btn btn-outline-light ${filter === 'TBR' ? 'active' : ''}`}
+                      className={`btn ${filter === 'TBR' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
                       onClick={() => setFilter('TBR')}
                     >
-                      TBR
+                      <i className="bi bi-book me-2"></i>
+                      To Be Read ({books.filter(b => b.status === 'TBR').length})
                     </button>
                   </div>
                   
-                  <select 
-                    className="form-select w-auto"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="title">Sort by Title</option>
-                    <option value="author">Sort by Author</option>
-                    <option value="rating">Sort by Rating</option>
-                    <option value="status">Sort by Status</option>
-                  </select>
+                  <div className="mt-4 pt-3 border-top">
+                    <h6 className="mb-3">Sort By</h6>
+                    <select 
+                      className="form-select"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                    >
+                      <option value="title">Title (A-Z)</option>
+                      <option value="author">Author (A-Z)</option>
+                      <option value="rating">Highest Rating</option>
+                      <option value="status">Status</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Books Grid Section */}
+            <section className="mt-4">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h3 className="text-gradient mb-0">
+                  <i className="bi bi-bookshelf me-2"></i>
+                  My Books ({sortedBooks.length})
+                </h3>
+                <div className="text-muted">
+                  {filter !== 'all' && (
+                    <button 
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => setFilter('all')}
+                    >
+                      <i className="bi bi-x-circle me-1"></i>
+                      Clear Filter
+                    </button>
+                  )}
                 </div>
               </div>
               
               {/* Books Grid */}
               <div className="row g-4">
-                {sortedBooks.map((book) => {
-                  const badge = getStatusBadge(book.status);
-                  
-                  return (
-                    <div key={book.id} className="col-md-6 col-lg-3">
-                      <div className="card card-glass h-100 border-0 d-flex flex-row align-items-start p-3">
-                        <img 
-                          src={book.image} 
-                          className="card-img-left" 
-                          alt={book.title}
-                          style={{ width: '120px', height: '180px', objectFit: 'cover', marginRight: '15px' }}
-                        />
-                        <div className="card-body d-flex flex-column p-0" style={{ flex: 1 }}>
-                          <h5 className="card-title fs-6 mb-1">{book.title}</h5>
-                          <p className="card-text text-muted small mb-2">{book.author}</p>
-                          <div className="text-warning mb-2 small">
-                            {renderStars(book.rating)}
-                          </div>
-                          <div className="mt-auto d-flex justify-content-between align-items-center">
-                            <span className={`badge ${badge.class}`}>{badge.text}</span>
-                            <div className="action-buttons">
-                              {book.status !== 'Completed' && (
-                                <button 
-                                  className="btn btn-sm btn-success me-1"
-                                  onClick={() => markAsRead(book.id)}
-                                >
-                                  <i className="bi bi-check"></i>
-                                </button>
-                              )}
-                              <button 
-                                className="btn btn-sm btn-danger"
-                                onClick={() => {
-                                  if (window.confirm('Are you sure you want to delete this book?')) {
-                                    deleteBook(book.id);
-                                  }
-                                }}
-                              >
-                                <i className="bi bi-trash"></i>
-                              </button>
+                {sortedBooks.length === 0 ? (
+                  <div className="col-12">
+                    <div className="card-glass p-5 text-center">
+                      <i className="bi bi-book text-muted" style={{ fontSize: '3rem' }}></i>
+                      <h4 className="mt-3">No books found</h4>
+                      <p className="text-muted">Try changing your filter or add some books to your collection</p>
+                    </div>
+                  </div>
+                ) : (
+                  sortedBooks.map((book) => {
+                    const badge = getStatusBadge(book.status);
+                    
+                    return (
+                      <div key={book.id} className="col-md-6 col-lg-4 col-xl-3">
+                        <div className="card card-glass h-100 border-0 hover-lift">
+                          <div className="card-body p-3 d-flex">
+                            <img 
+                              src={book.image} 
+                              className="book-cover"
+                              alt={book.title}
+                              style={{ 
+                                width: '80px', 
+                                height: '120px', 
+                                objectFit: 'cover',
+                                borderRadius: '0.5rem',
+                                marginRight: '15px'
+                              }}
+                            />
+                            <div className="flex-grow-1 d-flex flex-column">
+                              <h6 className="card-title mb-1">{book.title}</h6>
+                              <p className="card-text text-muted small mb-2">{book.author}</p>
+                              <div className="text-warning mb-2 small">
+                                {renderStars(book.rating)}
+                              </div>
+                              <div className="mt-auto d-flex justify-content-between align-items-center">
+                                <span className={`badge ${badge.class} px-2 py-1`}>{badge.text}</span>
+                                <div className="action-buttons d-flex gap-1">
+                                  {book.status !== 'Completed' && (
+                                    <button 
+                                      className="btn btn-sm btn-outline-success"
+                                      onClick={() => markAsRead(book.id)}
+                                      title="Mark as read"
+                                    >
+                                      <i className="bi bi-check"></i>
+                                    </button>
+                                  )}
+                                  <button 
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => {
+                                      if (window.confirm('Are you sure you want to delete this book?')) {
+                                        deleteBook(book.id);
+                                      }
+                                    }}
+                                    title="Delete book"
+                                  >
+                                    <i className="bi bi-trash"></i>
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </section>
           </div>
