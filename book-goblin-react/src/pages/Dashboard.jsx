@@ -31,7 +31,7 @@ const Dashboard = () => {
               <div className="col-lg-6">
                 <div className="hero-image">
                   <img 
-                    src="Img/BookGoblinMess.png" 
+                    src="/Img/BookGoblinMess.png" 
                     alt="Book Goblin" 
                     className="img-fluid rounded-4"
                   />

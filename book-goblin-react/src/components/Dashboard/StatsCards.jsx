@@ -4,28 +4,28 @@ const StatsCards = ({ stats }) => {
   const statItems = [
     {
       title: 'Books Read',
-      value: stats.booksRead,
+      value: stats?.booksRead || 0,
       description: 'Total books completed',
       icon: 'bi-book',
       color: 'primary'
     },
     {
       title: 'To Be Read',
-      value: stats.tbr || 50,
+      value: stats?.tbr || 0,
       description: 'Books in your queue',
       icon: 'bi-list-check',
       color: 'purple'
     },
     {
       title: 'Recommended',
-      value: stats.recommendations || 400,
+      value: stats?.recommendations || 0,
       description: 'Books suggested for you',
       icon: 'bi-star',
       color: 'warning'
     },
     {
       title: 'Goal Progress',
-      value: `${stats.progress || 71}%`,
+      value: `${stats?.progress || 0}%`,
       description: 'Yearly reading goal',
       icon: 'bi-flag',
       color: 'success'

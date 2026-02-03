@@ -49,7 +49,7 @@ const AddBookForm = ({ onSubmit }) => {
     };
     
     addBook(bookData);
-    onSubmit(bookData);
+    if (onSubmit) onSubmit(bookData);
     
     // Reset form
     setFormData({
@@ -81,7 +81,6 @@ const AddBookForm = ({ onSubmit }) => {
               maxLength="100"
               placeholder="Enter book title"
             />
-            <div className="invalid-feedback d-none">Please enter a valid book title (2-100 characters).</div>
           </div>
           
           <div className="col-md-6">
@@ -98,7 +97,6 @@ const AddBookForm = ({ onSubmit }) => {
               maxLength="50"
               placeholder="Enter author name"
             />
-            <div className="invalid-feedback d-none">Please enter a valid author name (2-50 characters).</div>
           </div>
           
           <div className="col-md-6">
@@ -116,7 +114,6 @@ const AddBookForm = ({ onSubmit }) => {
                 <option key={genre} value={genre}>{genre}</option>
               ))}
             </select>
-            <div className="invalid-feedback d-none">Please select a genre.</div>
           </div>
           
           <div className="col-md-6">
@@ -134,7 +131,6 @@ const AddBookForm = ({ onSubmit }) => {
                 <option key={status.value} value={status.value}>{status.label}</option>
               ))}
             </select>
-            <div className="invalid-feedback d-none">Please select a reading status.</div>
           </div>
           
           <div className="col-12">

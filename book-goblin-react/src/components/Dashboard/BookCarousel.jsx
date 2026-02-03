@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const BookCarousel = ({ books }) => {
+const BookCarousel = ({ books = [] }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrev = () => {
@@ -9,10 +9,6 @@ const BookCarousel = ({ books }) => {
 
   const handleNext = () => {
     setActiveIndex((prev) => (prev === books.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleIndicatorClick = (index) => {
-    setActiveIndex(index);
   };
 
   if (books.length === 0) {
@@ -27,7 +23,7 @@ const BookCarousel = ({ books }) => {
 
   return (
     <div className="carousel-container">
-      <div className="carousel slide" data-bs-ride="carousel">
+      <div id="discoverCarousel" className="carousel slide" data-bs-ride="carousel">
         <div className="carousel-inner rounded-4 overflow-hidden">
           {books.map((book, index) => (
             <div
@@ -74,7 +70,7 @@ const BookCarousel = ({ books }) => {
             key={index}
             type="button"
             className={`carousel-indicator ${index === activeIndex ? 'active' : ''}`}
-            onClick={() => handleIndicatorClick(index)}
+            onClick={() => setActiveIndex(index)}
             aria-label={`Slide ${index + 1}`}
           ></button>
         ))}

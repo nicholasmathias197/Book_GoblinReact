@@ -55,7 +55,7 @@ const Discover = () => {
               <div className="col-lg-6">
                 <div className="hero-image">
                   <img 
-                    src="Img/Searching%20Goblin.png" 
+                    src="/Img/Searching Goblin.png" 
                     alt="Searching Goblin" 
                     className="img-fluid" 
                     style={{ maxWidth: '400px' }}

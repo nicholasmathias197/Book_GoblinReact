@@ -11,7 +11,6 @@ import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import PrivateRoute from './components/Common/PrivateRoute';
 import AdminRoute from './components/Common/AdminRoute';
-import PageTransition from './components/Layout/PageTransition';
 import './styles/App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -20,7 +19,6 @@ function App() {
     <Router>
       <AuthProvider>
         <BookProvider>
-          <PageTransition />
           <div className="App">
             <Routes>
               <Route path="/login" element={<Login />} />

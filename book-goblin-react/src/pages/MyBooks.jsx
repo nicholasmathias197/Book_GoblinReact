@@ -66,7 +66,7 @@ const MyBooks = () => {
             {/* Hero Section */}
             <div className="hero-image mb-5" style={{ overflow: 'hidden', borderRadius: '1rem' }}>
               <img 
-                src="Img/Chilling%20Goblin%203.0.png" 
+                src="/Img/Chilling Goblin 3.0.png" 
                 alt="Chilling Goblin"
                 className="img-fluid"
                 style={{ marginTop: '-250px', marginLeft: '300px', transform: 'translateY(-20px)' }}
