@@ -1,0 +1,73 @@
+book-goblin-backend/
+├── src/main/java/com/bookgoblin/
+│   ├── BookGoblinApplication.java
+│   ├── config/
+│   │   ├── SecurityConfig.java
+│   │   ├── WebConfig.java
+│   │   ├── OpenLibraryConfig.java
+│   │   └── CorsConfig.java
+│   ├── controller/
+│   │   ├── BookController.java
+│   │   ├── UserController.java
+│   │   ├── LibraryController.java
+│   │   ├── AdminController.java
+│   │   └── AuthController.java
+│   ├── service/
+│   │   ├── BookService.java
+│   │   ├── OpenLibraryService.java
+│   │   ├── UserService.java
+│   │   ├── LibraryService.java
+│   │   ├── AuthService.java
+│   │   └── AdminService.java
+│   ├── repository/
+│   │   ├── UserRepository.java
+│   │   ├── BookRepository.java
+│   │   ├── UserBookRepository.java
+│   │   ├── LibraryRepository.java
+│   │   └── ActivityLogRepository.java
+│   ├── model/
+│   │   ├── entity/
+│   │   │   ├── User.java
+│   │   │   ├── Book.java
+│   │   │   ├── UserBook.java
+│   │   │   ├── Library.java
+│   │   │   └── ActivityLog.java
+│   │   ├── dto/
+│   │   │   ├── request/
+│   │   │   │   ├── LoginRequest.java
+│   │   │   │   ├── RegisterRequest.java
+│   │   │   │   ├── BookRequest.java
+│   │   │   │   └── UpdateProgressRequest.java
+│   │   │   └── response/
+│   │   │       ├── AuthResponse.java
+│   │   │       ├── BookResponse.java
+│   │   │       ├── UserResponse.java
+│   │   │       └── ApiResponse.java
+│   │   └── enums/
+│   │       ├── BookStatus.java
+│   │       ├── Role.java
+│   │       ├── Genre.java
+│   │       └── ActivityType.java
+│   ├── security/
+│   │   ├── JwtAuthenticationFilter.java
+│   │   ├── JwtService.java
+│   │   ├── UserDetailsServiceImpl.java
+│   │   └── SecurityUtil.java
+│   ├── exception/
+│   │   ├── GlobalExceptionHandler.java
+│   │   ├── BookNotFoundException.java
+│   │   ├── UserNotFoundException.java
+│   │   └── UnauthorizedException.java
+│   └── util/
+│       ├── OpenLibraryMapper.java
+│       ├── BookMapper.java
+│       ├── Constants.java
+│       └── Validator.java
+├── src/main/resources/
+│   ├── application.yml
+│   ├── application-dev.yml
+│   ├── application-prod.yml
+│   └── data.sql
+├── build.gradle (or pom.xml)
+├── Dockerfile
+└── README.md

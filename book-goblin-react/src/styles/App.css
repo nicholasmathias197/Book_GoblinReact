@@ -683,7 +683,48 @@ a:not(.btn):not(.nav-btn):hover {
     transform: translateY(0);
   }
 }
+.virtual-list {
+  outline: none;
+}
 
+/* Optional: Custom scrollbar for virtual list */
+.virtual-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.virtual-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.virtual-list::-webkit-scrollbar-thumb {
+  background: rgba(155, 77, 255, 0.5);
+  border-radius: 4px;
+}
+
+.virtual-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 77, 255, 0.7);
+}
+
+/* Loading state for images */
+.book-cover {
+  transition: opacity 0.3s ease;
+}
+
+.book-cover[src*="default"] {
+  background: linear-gradient(45deg, #2a2a2a, #3a3a3a);
+}
+
+/* Status button colors */
+.btn-outline-purple {
+  color: #9b4dff;
+  border-color: #9b4dff;
+}
+
+.btn-outline-purple:hover {
+  background-color: #9b4dff;
+  color: white;
+}
 /* Responsive text sizes */
 @media (max-width: 768px) {
   h1 {

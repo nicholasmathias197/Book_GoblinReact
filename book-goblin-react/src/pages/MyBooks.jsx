@@ -105,6 +105,20 @@ const MyBooks = () => {
     });
   };
 
+  const handleMarkAsReading = async (bookId) => {
+    await updateBook(bookId, { 
+      status: 'Reading',
+      startedDate: new Date().toISOString()
+    });
+  };
+
+  const handleMarkAsDNF = async (bookId) => {
+    await updateBook(bookId, { 
+      status: 'DNF',
+      finishedDate: new Date().toISOString()
+    });
+  };
+
   const getBookImage = (book) => {
     if (book.coverUrl) return book.coverUrl;
     if (book.image) return book.image;
@@ -301,15 +315,40 @@ const MyBooks = () => {
                               <div className="mt-auto d-flex justify-content-between align-items-center">
                                 <span className={`badge ${badge.class} px-2 py-1`}>{badge.text}</span>
                                 <div className="action-buttons d-flex gap-1">
+                                  {/* Show Reading button only if not already Reading */}
+                                  {book.status !== 'Reading' && (
+                                    <button 
+                                      className="btn btn-sm btn-outline-info"
+                                      onClick={() => handleMarkAsReading(book.id)}
+                                      title="Mark as Reading"
+                                    >
+                                      <i className="bi bi-play-circle"></i>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Show DNF button only if not already DNF */}
+                                  {book.status !== 'DNF' && (
+                                    <button 
+                                      className="btn btn-sm btn-outline-warning"
+                                      onClick={() => handleMarkAsDNF(book.id)}
+                                      title="Mark as Did Not Finish"
+                                    >
+                                      <i className="bi bi-x-circle"></i>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Show Complete button only if not already Completed */}
                                   {book.status !== 'Completed' && (
                                     <button 
                                       className="btn btn-sm btn-outline-success"
                                       onClick={() => handleMarkAsRead(book.id)}
-                                      title="Mark as read"
+                                      title="Mark as Completed"
                                     >
-                                      <i className="bi bi-check"></i>
+                                      <i className="bi bi-check-circle"></i>
                                     </button>
                                   )}
+                                  
+                                  {/* Always show Delete button */}
                                   <button 
                                     className="btn btn-sm btn-outline-danger"
                                     onClick={() => {
