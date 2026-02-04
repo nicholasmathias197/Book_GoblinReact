@@ -1,13 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
 import Footer from '../components/Layout/Footer';
-import { useBooks } from '../context/BookContext';
+import { useBooks } from '../hooks/useBooks';
 
 const MyBooks = () => {
-  const { books, deleteBook, markAsRead } = useBooks();
+  const navigate = useNavigate();
+  const { books, deleteBook, updateBook, getBookCover } = useBooks();
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('title');
+  const [readingStats, setReadingStats] = useState([]);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [goalProgress, setGoalProgress] = useState(0);
+
+  // Calculate statistics
+  useEffect(() => {
+    const completedBooks = books.filter(book => book.status === 'Completed');
+    const completedCount = completedBooks.length;
+    const totalPagesRead = completedBooks.reduce((sum, book) => sum + (parseInt(book.pages) || 0), 0);
+    
+    // Group by month
+    const statsByMonth = {};
+    completedBooks.forEach(book => {
+      if (book.finishedDate) {
+        const date = new Date(book.finishedDate);
+        const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        if (!statsByMonth[monthYear]) {
+          statsByMonth[monthYear] = { books: 0, pages: 0 };
+        }
+        statsByMonth[monthYear].books += 1;
+        statsByMonth[monthYear].pages += parseInt(book.pages) || 0;
+      }
+    });
+    
+    const statsArray = Object.entries(statsByMonth)
+      .map(([month, data]) => ({ month, ...data }))
+      .sort((a, b) => new Date(b.month) - new Date(a.month))
+      .slice(0, 4);
+    
+    setReadingStats(statsArray);
+    setTotalBooks(completedCount);
+    setTotalPages(totalPagesRead);
+    
+    const goal = 50;
+    const progress = Math.min(Math.round((completedCount / goal) * 100), 100);
+    setGoalProgress(progress);
+  }, [books]);
 
   const filteredBooks = books.filter(book => {
     if (filter === 'all') return true;
@@ -17,29 +58,17 @@ const MyBooks = () => {
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     switch (sortBy) {
       case 'title':
-        return a.title.localeCompare(b.title);
+        return (a.title || '').localeCompare(b.title || '');
       case 'author':
-        return a.author.localeCompare(b.author);
+        return (a.author || '').localeCompare(b.author || '');
       case 'rating':
-        return b.rating - a.rating;
+        return (b.userRating || b.rating || 0) - (a.userRating || a.rating || 0);
       case 'status':
-        return a.status.localeCompare(b.status);
+        return (a.status || '').localeCompare(b.status || '');
       default:
         return 0;
     }
   });
-
-  // Calculate reading stats
-  const readingStats = [
-    { month: 'March 2024', books: 3, pages: 850 },
-    { month: 'February 2024', books: 4, pages: 1200 },
-    { month: 'January 2024', books: 5, pages: 1500 },
-    { month: 'December 2023', books: 6, pages: 1800 }
-  ];
-  
-  const totalBooks = readingStats.reduce((sum, stat) => sum + stat.books, 0);
-  const totalPages = readingStats.reduce((sum, stat) => sum + stat.pages, 0);
-  const goalProgress = Math.min(Math.round((totalBooks / 50) * 100), 100); // Assuming 50 book goal
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -68,6 +97,21 @@ const MyBooks = () => {
     return stars;
   };
 
+  const handleMarkAsRead = async (bookId) => {
+    await updateBook(bookId, { 
+      status: 'Completed', 
+      progress: 100,
+      finishedDate: new Date().toISOString()
+    });
+  };
+
+  const getBookImage = (book) => {
+    if (book.coverUrl) return book.coverUrl;
+    if (book.image) return book.image;
+    if (book.coverId) return getBookCover(book.coverId, 'S');
+    return '/Img/default-book-cover.jpg';
+  };
+
   return (
     <div className="mybooks-page">
       <Header />
@@ -75,203 +119,166 @@ const MyBooks = () => {
         <Sidebar />
         <main className="content-area">
           <div className="container-fluid py-4 px-3 px-lg-4">
-            {/* Top Row: Hero Image and Reading Goals */}
-            <div className="row g-4 mb-4">
-              {/* Hero Image */}
-              <div className="col-lg-8">
-                <div className="card-glass p-0" style={{ height: '200px', overflow: 'hidden', borderRadius: '1rem' }}>
-                  <div className="position-relative h-100">
-                    <img 
-                      src="/Img/Chilling Goblin 3.0.png" 
-                      alt="Chilling Goblin"
-                      className="position-absolute h-100 w-auto"
-                      style={{ 
-                        objectFit: 'cover',
-                        right: '0',
-                        top: '0'
-                      }}
-                    />
-                    <div className="position-absolute top-0 start-0 p-4" style={{ zIndex: 1 }}>
-                      <h2 className="text-gradient mb-2">My Reading Dashboard</h2>
-                      <p className="text-muted mb-0">Track your reading journey</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Top Row: Header and Add Button */}
+            <div className="row align-items-center mb-4">
+              <div className="col-md-8">
+                <h1 className="text-gradient mb-2">
+                  <i className="bi bi-bookshelf me-2"></i>
+                  My Library
+                </h1>
+                <p className="text-white-80 mb-0">Manage your personal book collection</p>
               </div>
-              
-              {/* Reading Goals Card */}
-              <div className="col-lg-4">
-                <div className="card-glass h-100 p-4 d-flex flex-column">
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h4 className="text-gradient mb-0">Reading Goal</h4>
-                    <button className="btn btn-sm btn-outline-primary">
-                      <i className="bi bi-pencil"></i>
-                    </button>
-                  </div>
-                  
-                  <div className="text-center flex-grow-1 d-flex flex-column justify-content-center">
-                    <div className="position-relative d-inline-block mb-3" style={{ width: '120px', height: '120px' }}>
-                      <svg viewBox="0 0 36 36" className="circular-chart" style={{ width: '100%', height: '100%' }}>
-                        <path
-                          className="circle-bg"
-                          d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke="#eee"
-                          strokeWidth="3"
-                        />
-                        <path
-                          className="circle"
-                          d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke="#9b4dff"
-                          strokeWidth="3"
-                          strokeDasharray={`${goalProgress}, 100`}
-                        />
-                      </svg>
-                      <div className="position-absolute top-50 start-50 translate-middle text-center">
-                        <h3 className="mb-0">{goalProgress}%</h3>
-                      </div>
-                    </div>
-                    <div>
-                      <h5 className="mb-1">{totalBooks} of 50 books</h5>
-                      <p className="text-muted small mb-0">{totalPages.toLocaleString()} total pages</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="col-md-4 text-md-end">
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => navigate('/discover')}
+                >
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Add New Books
+                </button>
               </div>
             </div>
 
-            {/* Second Row: Reading Stats and Quick Filters */}
-            <div className="row g-4 mb-4">
-              {/* Reading Progress Card */}
-              <div className="col-lg-8">
+            {/* Reading Goals Card */}
+            <div className="row mb-4">
+              <div className="col-12">
                 <div className="card-glass p-4">
-                  <h4 className="text-gradient mb-4">Reading Progress</h4>
-                  <div className="row g-3">
-                    {readingStats.map((stat, index) => (
-                      <div key={index} className="col-sm-6 col-md-3">
-                        <div className="card-stat p-3 text-center">
-                          <div className="text-muted small mb-1">{stat.month}</div>
-                          <div className="d-flex justify-content-center align-items-baseline">
-                            <h3 className="mb-0 me-2">{stat.books}</h3>
-                            <span className="text-muted small">books</span>
+                  <div className="row align-items-center">
+                    <div className="col-md-8">
+                      <h4 className="text-gradient mb-3">Reading Progress</h4>
+                      <div className="d-flex align-items-center">
+                        <div className="position-relative me-4" style={{ width: '100px', height: '100px' }}>
+                          <svg viewBox="0 0 36 36" className="circular-chart">
+                            <path
+                              className="circle-bg"
+                              d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke="#eee"
+                              strokeWidth="3"
+                            />
+                            <path
+                              className="circle"
+                              d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke="#9b4dff"
+                              strokeWidth="3"
+                              strokeDasharray={`${goalProgress}, 100`}
+                            />
+                          </svg>
+                          <div className="position-absolute top-50 start-50 translate-middle text-center">
+                            <h5 className="mb-0">{goalProgress}%</h5>
                           </div>
-                          <div className="text-purple small">{stat.pages.toLocaleString()} pages</div>
+                        </div>
+                        <div>
+                          <h5 className="mb-1">{totalBooks} of 50 books completed</h5>
+                          <p className="mb-0 text-white-80">{totalPages.toLocaleString()} total pages read</p>
+                          <div className="mt-2">
+                            <button 
+                              className="btn btn-sm btn-outline-light"
+                              onClick={() => navigate('/discover')}
+                            >
+                              <i className="bi bi-search me-1"></i>
+                              Find More Books
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-top text-center">
-                    <div className="row">
-                      <div className="col-6">
-                        <div className="text-muted small">Total Books</div>
-                        <h4 className="mb-0">{totalBooks}</h4>
-                      </div>
-                      <div className="col-6">
-                        <div className="text-muted small">Total Pages</div>
-                        <h4 className="mb-0 text-purple">{totalPages.toLocaleString()}</h4>
+                    </div>
+                    <div className="col-md-4">
+                      <div className="card-stat p-3 text-center h-100">
+                        <div className="small text-white-80 mb-1">Total Collection</div>
+                        <h2 className="mb-0 text-white">{books.length}</h2>
+                        <p className="small mb-0 text-white-80">books in your library</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Quick Filters Card */}
-              <div className="col-lg-4">
-                <div className="card-glass h-100 p-4">
-                  <h4 className="text-gradient mb-4">Quick Filters</h4>
-                  <div className="d-flex flex-column gap-2">
-                    <button 
-                      className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
-                      onClick={() => setFilter('all')}
-                    >
-                      <i className="bi bi-collection me-2"></i>
-                      All Books ({books.length})
-                    </button>
-                    <button 
-                      className={`btn ${filter === 'Reading' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
-                      onClick={() => setFilter('Reading')}
-                    >
-                      <i className="bi bi-bookmark-check me-2"></i>
-                      Currently Reading ({books.filter(b => b.status === 'Reading').length})
-                    </button>
-                    <button 
-                      className={`btn ${filter === 'Completed' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
-                      onClick={() => setFilter('Completed')}
-                    >
-                      <i className="bi bi-check-circle me-2"></i>
-                      Completed ({books.filter(b => b.status === 'Completed').length})
-                    </button>
-                    <button 
-                      className={`btn ${filter === 'TBR' ? 'btn-primary' : 'btn-outline-light'} justify-content-start`}
-                      onClick={() => setFilter('TBR')}
-                    >
-                      <i className="bi bi-book me-2"></i>
-                      To Be Read ({books.filter(b => b.status === 'TBR').length})
-                    </button>
+            </div>
+
+            {/* Filters and Sort Bar */}
+            <div className="card-glass p-3 mb-4">
+              <div className="row align-items-center">
+                <div className="col-md-6">
+                  <div className="btn-group" role="group">
+                    {['all', 'Reading', 'Completed', 'TBR', 'DNF'].map((status) => (
+                      <button
+                        key={status}
+                        className={`btn btn-sm ${filter === status ? 'btn-primary' : 'btn-outline-light'}`}
+                        onClick={() => setFilter(status)}
+                      >
+                        {status === 'all' ? 'All Books' : status}
+                        {status !== 'all' && (
+                          <span className="badge bg-dark ms-2">
+                            {books.filter(b => b.status === status).length}
+                          </span>
+                        )}
+                      </button>
+                    ))}
                   </div>
-                  
-                  <div className="mt-4 pt-3 border-top">
-                    <h6 className="mb-3">Sort By</h6>
-                    <select 
-                      className="form-select"
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                    >
-                      <option value="title">Title (A-Z)</option>
-                      <option value="author">Author (A-Z)</option>
-                      <option value="rating">Highest Rating</option>
-                      <option value="status">Status</option>
-                    </select>
-                  </div>
+                </div>
+                <div className="col-md-6 text-md-end mt-2 mt-md-0">
+                  <select 
+                    className="form-select form-select-sm bg-dark border-glass text-light d-inline-block w-auto"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="title">Title (A-Z)</option>
+                    <option value="author">Author (A-Z)</option>
+                    <option value="rating">Highest Rating</option>
+                    <option value="status">Status</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Books Grid Section */}
-            <section className="mt-4">
+            {/* Books Grid */}
+            <section>
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h3 className="text-gradient mb-0">
-                  <i className="bi bi-bookshelf me-2"></i>
-                  My Books ({sortedBooks.length})
+                  {filter === 'all' ? 'All Books' : filter} ({sortedBooks.length})
                 </h3>
-                <div className="text-muted">
-                  {filter !== 'all' && (
-                    <button 
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={() => setFilter('all')}
-                    >
-                      <i className="bi bi-x-circle me-1"></i>
-                      Clear Filter
-                    </button>
-                  )}
-                </div>
+                {filter !== 'all' && (
+                  <button 
+                    className="btn btn-sm btn-outline-light"
+                    onClick={() => setFilter('all')}
+                  >
+                    Clear Filter
+                  </button>
+                )}
               </div>
               
-              {/* Books Grid */}
               <div className="row g-4">
                 {sortedBooks.length === 0 ? (
                   <div className="col-12">
                     <div className="card-glass p-5 text-center">
-                      <i className="bi bi-book text-muted" style={{ fontSize: '3rem' }}></i>
+                      <i className="bi bi-book" style={{ fontSize: '3rem' }}></i>
                       <h4 className="mt-3">No books found</h4>
-                      <p className="text-muted">Try changing your filter or add some books to your collection</p>
+                      <p>Try changing your filter or add some books to your collection</p>
+                      <button 
+                        className="btn btn-primary mt-3"
+                        onClick={() => navigate('/discover')}
+                      >
+                        <i className="bi bi-search me-2"></i>
+                        Discover Books
+                      </button>
                     </div>
                   </div>
                 ) : (
                   sortedBooks.map((book) => {
                     const badge = getStatusBadge(book.status);
+                    const bookImage = getBookImage(book);
                     
                     return (
                       <div key={book.id} className="col-md-6 col-lg-4 col-xl-3">
                         <div className="card card-glass h-100 border-0 hover-lift">
                           <div className="card-body p-3 d-flex">
                             <img 
-                              src={book.image} 
+                              src={bookImage}
                               className="book-cover"
                               alt={book.title}
                               style={{ 
@@ -281,12 +288,15 @@ const MyBooks = () => {
                                 borderRadius: '0.5rem',
                                 marginRight: '15px'
                               }}
+                              onError={(e) => {
+                                e.target.src = '/Img/default-book-cover.jpg';
+                              }}
                             />
                             <div className="flex-grow-1 d-flex flex-column">
-                              <h6 className="card-title mb-1">{book.title}</h6>
-                              <p className="card-text text-muted small mb-2">{book.author}</p>
+                              <h6 className="card-title mb-1 text-white">{book.title || 'Untitled Book'}</h6>
+                              <p className="card-text small mb-2 text-white-80">{book.author || 'Unknown Author'}</p>
                               <div className="text-warning mb-2 small">
-                                {renderStars(book.rating)}
+                                {renderStars(book.userRating || book.rating || 0)}
                               </div>
                               <div className="mt-auto d-flex justify-content-between align-items-center">
                                 <span className={`badge ${badge.class} px-2 py-1`}>{badge.text}</span>
@@ -294,7 +304,7 @@ const MyBooks = () => {
                                   {book.status !== 'Completed' && (
                                     <button 
                                       className="btn btn-sm btn-outline-success"
-                                      onClick={() => markAsRead(book.id)}
+                                      onClick={() => handleMarkAsRead(book.id)}
                                       title="Mark as read"
                                     >
                                       <i className="bi bi-check"></i>

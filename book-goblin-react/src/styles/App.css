@@ -11,7 +11,6 @@
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.2);
   --text-color: #ffffff; /* Pure white for all text */
-  --text-muted: #e0e0e0; /* Light gray for muted text, not transparent */
   --text-strong: #ffffff; /* Pure white for important text */
   --text-heading: #ffffff; /* White for headings */
 }
@@ -98,7 +97,7 @@ p {
 }
 
 .text-muted {
-  color: var(--text-muted) !important;
+  color: #ffffff; 
   font-weight: 400;
   text-shadow: none;
 }
@@ -109,6 +108,19 @@ p {
   text-shadow: none;
 }
 
+/* White text utilities */
+.text-white {
+  color: #ffffff !important;
+}
+
+.text-white-80 {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.text-light-purple {
+  color: #e0c8ff !important;
+}
+
 /* Text Gradients - Only for accent elements, not body text */
 .text-gradient {
   background: linear-gradient(90deg, #9b4dff 0%, #ff6b6b 100%);
@@ -116,6 +128,34 @@ p {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 700;
+}
+
+/* Ensure all text in grid rows is white */
+.row.g-4 *:not(.btn):not(.badge):not(.text-warning):not(.text-purple):not(.text-gradient):not(.text-light-purple) {
+  color: var(--text-color) !important;
+}
+
+/* Specific override for card content in grid */
+.row.g-4 .card-body,
+.row.g-4 .card-title,
+.row.g-4 .card-text,
+.row.g-4 .small {
+  color: var(--text-color) !important;
+}
+
+/* Ensure stat card numbers are white */
+.row.g-4 .card-stat h3 {
+  color: #ffffff !important;
+}
+
+/* Make sure the "books" text in stats is white */
+.row.g-4 .card-stat .small {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Fix card stat text colors specifically */
+.row.g-4 .card-stat .text-light-purple.small {
+  color: #e0c8ff !important; /* Lighter purple for better visibility on dark */
 }
 
 /* Sidebar - All text is white */
@@ -233,18 +273,30 @@ p {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Select dropdowns - White text */
+/* Dropdown menu - black text */
+.form-select option {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+/* For better contrast in the select itself */
 .form-select {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: var(--text-color);
-  text-shadow: none;
+  color: #ffffff !important; /* White text for the selected value */
 }
 
+/* When the dropdown is open */
 .form-select:focus {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--primary-color);
-  color: var(--text-color);
+  color: #ffffff !important; /* White text for selected */
+}
+
+/* Make sure options are visible with black text */
+select option {
+  color: black !important;
+  background-color: white !important;
 }
 
 /* Tables - All text white */
@@ -415,6 +467,66 @@ p {
   text-shadow: none;
 }
 
+/* Sidebar dropdown styling */
+.dropdown-menu.bg-dark {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  padding: 0.5rem 0 !important;
+}
+
+.dropdown-item.text-light {
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+}
+
+.dropdown-item.text-light:hover {
+  background: rgba(155, 77, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Sort dropdown specific styling */
+.sort-dropdown-container .dropdown-toggle {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.sort-dropdown-container .dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.sort-dropdown-container .dropdown-menu {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  padding: 0.5rem 0 !important;
+  margin-top: 0.5rem !important;
+}
+
+.sort-dropdown-container .dropdown-item {
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+}
+
+.sort-dropdown-container .dropdown-item:hover {
+  background: rgba(155, 77, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
 /* Admin dashboard - Exception for white background sections */
 .admin-section {
   background: white !important;
@@ -465,6 +577,112 @@ a:not(.btn):not(.nav-btn):hover {
 * {
   text-shadow: none !important;
 }
+/* Dropdown Portal Styles */
+.portal-dropdown {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.portal-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.portal-dropdown::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.portal-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(155, 77, 255, 0.5);
+  border-radius: 3px;
+}
+
+.portal-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 77, 255, 0.7);
+}
+
+/* Ensure the dropdown appears above everything */
+.portal-dropdown {
+  z-index: 9999 !important;
+}
+
+/* Make sure modals and other overlays are above dropdown if needed */
+.modal-backdrop,
+.modal-content {
+  z-index: 10000 !important;
+}
+/* Scrollable results styling */
+.scrollable-results {
+  scrollbar-width: thin;
+  scrollbar-color: #9b4dff #1a1a2e;
+}
+
+.scrollable-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-results::-webkit-scrollbar-track {
+  background: #1a1a2e;
+  border-radius: 4px;
+}
+
+.scrollable-results::-webkit-scrollbar-thumb {
+  background: #9b4dff;
+  border-radius: 4px;
+}
+
+.scrollable-results::-webkit-scrollbar-thumb:hover {
+  background: #7b3dcc;
+}
+
+.results-container.scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: #9b4dff #1a1a2e;
+}
+
+.results-container.scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.results-container.scrollable::-webkit-scrollbar-track {
+  background: #1a1a2e;
+  border-radius: 4px;
+}
+
+.results-container.scrollable::-webkit-scrollbar-thumb {
+  background: #9b4dff;
+  border-radius: 4px;
+}
+
+.results-container.scrollable::-webkit-scrollbar-thumb:hover {
+  background: #7b3dcc;
+}
+
+/* Search results dropdown styling */
+.search-results-dropdown {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* Responsive text sizes */
 @media (max-width: 768px) {
@@ -482,10 +700,20 @@ a:not(.btn):not(.nav-btn):hover {
   
   .content-area {
     padding: 1rem;
+    margin-left: 0 !important;
   }
   
   .stat-card h2 {
     font-size: 2.5rem;
+  }
+  
+  .nav-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .nav-sidebar.mobile-open {
+    transform: translateX(0);
   }
 }
 
@@ -534,4 +762,40 @@ a:not(.btn):not(.nav-btn):hover {
 
 .lh-loose {
   line-height: 1.75 !important;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Circular progress chart */
+.circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.circle {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+/* Card stat */
+.card-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-stat:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }

@@ -49,7 +49,7 @@ const StatsCards = ({ stats }) => {
                 </h2>
               </div>
               <p className="h5 mb-1">{stat.title}</p>
-              <small className="text-muted">{stat.description}</small>
+              <small className="text">{stat.description}</small>
             </div>
           </div>
         ))}
