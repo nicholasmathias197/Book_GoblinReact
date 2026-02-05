@@ -1,28 +1,23 @@
 import React, { useState } from 'react';
 import { useBooks } from '../../context/BookContext';
 
-const AddBookForm = ({ onSubmit }) => {
-  const { addBook } = useBooks();
+const AddBookForm = ({ onSubmit, onClose }) => {
+  const { addBookToLibrary, loading } = useBooks();
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    genre: '',
-    status: '',
-    rating: 0,
-    notes: ''
+    isbn: '',
+    pages: '',
+    publishedYear: '',
+    status: 'WANT_TO_READ'
   });
-  const [charCount, setCharCount] = useState(0);
-
-  const genres = [
-    'Fantasy', 'Science Fiction', 'Mystery', 'Romance', 
-    'Horror', 'Non-Fiction', 'Biography', 'Historical Fiction'
-  ];
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const statuses = [
-    { value: 'Reading', label: 'Currently Reading' },
-    { value: 'TBR', label: 'To Be Read' },
-    { value: 'Completed', label: 'Completed' },
-    { value: 'DNF', label: 'Did Not Finish' }
+    { value: 'WANT_TO_READ', label: 'Want to Read' },
+    { value: 'READING', label: 'Currently Reading' },
+    { value: 'READ', label: 'Read' }
   ];
 
   const handleInputChange = (e) => {
@@ -31,44 +26,104 @@ const AddBookForm = ({ onSubmit }) => {
       ...prev,
       [name]: value
     }));
+    setError('');
+    setSuccess('');
+  };
 
-    if (name === 'notes') {
-      setCharCount(value.length);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    
+    // Basic validation
+    if (!formData.title.trim() || !formData.author.trim()) {
+      setError('Title and author are required');
+      return;
+    }
+    
+    try {
+      const bookData = {
+        title: formData.title.trim(),
+        author: formData.author.trim(),
+        isbn: formData.isbn.trim() || undefined,
+        pages: formData.pages ? parseInt(formData.pages) : undefined,
+        publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : undefined,
+        status: formData.status
+      };
+      
+      const result = await addBookToLibrary(bookData);
+      
+      if (result.success) {
+        setSuccess('Book added to your library successfully!');
+        
+        // Reset form
+        setFormData({
+          title: '',
+          author: '',
+          isbn: '',
+          pages: '',
+          publishedYear: '',
+          status: 'WANT_TO_READ'
+        });
+        
+        // Call onSubmit callback if provided
+        if (onSubmit) {
+          onSubmit(result.data);
+        }
+        
+        // Auto-close after success (optional)
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 2000);
+        
+      } else {
+        setError(result.error || 'Failed to add book to library');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred');
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    const bookData = {
-      ...formData,
-      rating: parseFloat(formData.rating),
-      progress: formData.status === 'Completed' ? 100 : formData.status === 'Reading' ? 50 : 0,
-      image: `https://picsum.photos/seed/${Date.now()}/200/300`,
-      pages: Math.floor(Math.random() * 500) + 200
-    };
-    
-    addBook(bookData);
-    if (onSubmit) onSubmit(bookData);
-    
-    // Reset form
+  const handleReset = () => {
     setFormData({
       title: '',
       author: '',
-      genre: '',
-      status: '',
-      rating: 0,
-      notes: ''
+      isbn: '',
+      pages: '',
+      publishedYear: '',
+      status: 'WANT_TO_READ'
     });
-    setCharCount(0);
+    setError('');
+    setSuccess('');
   };
 
   return (
-    <div className="card card-glass border-0 p-4">
+    <div className="card border-0 p-4 shadow">
       <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <h4 className="text-gradient">Add Book to Library</h4>
+          <p className="text-muted small">Add a new book to your personal library</p>
+        </div>
+        
+        {error && (
+          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            {error}
+            <button type="button" className="btn-close" onClick={() => setError('')}></button>
+          </div>
+        )}
+        
+        {success && (
+          <div className="alert alert-success alert-dismissible fade show" role="alert">
+            {success}
+            <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
+          </div>
+        )}
+        
         <div className="row g-3">
-          <div className="col-md-6">
-            <label htmlFor="title" className="form-label">Book Title *</label>
+          <div className="col-md-12">
+            <label htmlFor="title" className="form-label">
+              Book Title <span className="text-danger">*</span>
+            </label>
             <input
               type="text"
               id="title"
@@ -77,14 +132,15 @@ const AddBookForm = ({ onSubmit }) => {
               value={formData.title}
               onChange={handleInputChange}
               required
-              minLength="2"
-              maxLength="100"
+              disabled={loading}
               placeholder="Enter book title"
             />
           </div>
           
-          <div className="col-md-6">
-            <label htmlFor="author" className="form-label">Author *</label>
+          <div className="col-md-12">
+            <label htmlFor="author" className="form-label">
+              Author <span className="text-danger">*</span>
+            </label>
             <input
               type="text"
               id="author"
@@ -93,112 +149,111 @@ const AddBookForm = ({ onSubmit }) => {
               value={formData.author}
               onChange={handleInputChange}
               required
-              minLength="2"
-              maxLength="50"
+              disabled={loading}
               placeholder="Enter author name"
             />
           </div>
           
           <div className="col-md-6">
-            <label htmlFor="genre" className="form-label">Genre *</label>
-            <select
-              id="genre"
-              name="genre"
-              className="form-select"
-              value={formData.genre}
+            <label htmlFor="isbn" className="form-label">ISBN</label>
+            <input
+              type="text"
+              id="isbn"
+              name="isbn"
+              className="form-control"
+              value={formData.isbn}
               onChange={handleInputChange}
-              required
-            >
-              <option value="">Select genre</option>
-              {genres.map(genre => (
-                <option key={genre} value={genre}>{genre}</option>
-              ))}
-            </select>
+              disabled={loading}
+              placeholder="Optional - for automatic details"
+            />
+            <div className="form-text">
+              Enter ISBN to fetch book details automatically
+            </div>
           </div>
           
           <div className="col-md-6">
-            <label htmlFor="status" className="form-label">Reading Status *</label>
+            <label htmlFor="status" className="form-label">Reading Status</label>
             <select
               id="status"
               name="status"
               className="form-select"
               value={formData.status}
               onChange={handleInputChange}
-              required
+              disabled={loading}
             >
-              <option value="">Select status</option>
               {statuses.map(status => (
-                <option key={status.value} value={status.value}>{status.label}</option>
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
               ))}
             </select>
           </div>
           
-          <div className="col-12">
-            <label htmlFor="rating" className="form-label">Rating (0-5)</label>
+          <div className="col-md-6">
+            <label htmlFor="pages" className="form-label">Pages</label>
             <input
-              type="range"
-              id="rating"
-              name="rating"
-              className="form-range"
-              min="0"
-              max="5"
-              step="0.5"
-              value={formData.rating}
+              type="number"
+              id="pages"
+              name="pages"
+              className="form-control"
+              value={formData.pages}
               onChange={handleInputChange}
+              disabled={loading}
+              placeholder="Optional"
+              min="1"
             />
-            <div className="d-flex justify-content-between">
-              <small>0</small>
-              <small>1</small>
-              <small>2</small>
-              <small>3</small>
-              <small>4</small>
-              <small>5</small>
-            </div>
-            <div className="text-center mt-2">
-              <span className="badge bg-primary">Rating: {formData.rating} stars</span>
-            </div>
           </div>
           
-          <div className="col-12">
-            <label htmlFor="notes" className="form-label">Notes</label>
-            <textarea
-              id="notes"
-              name="notes"
+          <div className="col-md-6">
+            <label htmlFor="publishedYear" className="form-label">Published Year</label>
+            <input
+              type="number"
+              id="publishedYear"
+              name="publishedYear"
               className="form-control"
-              rows="3"
-              maxLength="500"
-              placeholder="Add your notes about this book (max 500 characters)"
-              value={formData.notes}
+              value={formData.publishedYear}
               onChange={handleInputChange}
+              disabled={loading}
+              placeholder="Optional"
+              min="0"
+              max={new Date().getFullYear()}
             />
-            <div className="form-text text-end">
-              <span className={charCount > 450 ? 'text-danger' : charCount > 400 ? 'text-warning' : 'text-muted'}>
-                {charCount}/500 characters
-              </span>
-            </div>
           </div>
         </div>
         
-        <div className="mt-4">
-          <button type="submit" className="btn btn-primary me-2">
-            Add Book
-          </button>
+        <div className="mt-4 d-flex justify-content-between">
+          <div>
+            <button 
+              type="button" 
+              className="btn btn-secondary me-2"
+              onClick={handleReset}
+              disabled={loading}
+            >
+              Reset
+            </button>
+            {onClose && (
+              <button 
+                type="button" 
+                className="btn btn-outline-secondary"
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+          
           <button 
-            type="button" 
-            className="btn btn-secondary"
-            onClick={() => {
-              setFormData({
-                title: '',
-                author: '',
-                genre: '',
-                status: '',
-                rating: 0,
-                notes: ''
-              });
-              setCharCount(0);
-            }}
+            type="submit" 
+            className="btn btn-primary"
+            disabled={loading}
           >
-            Reset Form
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Adding...
+              </>
+            ) : 'Add to Library'}
           </button>
         </div>
       </form>

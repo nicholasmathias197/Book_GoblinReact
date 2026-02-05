@@ -3,54 +3,72 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
 import Footer from '../components/Layout/Footer';
-import { useBooks } from '../hooks/useBooks';
+import { useBooks } from '../context/BookContext';
+import { libraryAPI } from '../utils/api';
 
 const MyBooks = () => {
   const navigate = useNavigate();
-  const { books, deleteBook, updateBook, getBookCover } = useBooks();
+  const { myBooks, loading, getMyBooks, getBookCover } = useBooks();
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('title');
   const [readingStats, setReadingStats] = useState([]);
   const [totalBooks, setTotalBooks] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [goalProgress, setGoalProgress] = useState(0);
+  const [libraryStats, setLibraryStats] = useState(null);
 
-  // Calculate statistics
+  // Load books and stats
   useEffect(() => {
-    const completedBooks = books.filter(book => book.status === 'Completed');
-    const completedCount = completedBooks.length;
-    const totalPagesRead = completedBooks.reduce((sum, book) => sum + (parseInt(book.pages) || 0), 0);
-    
-    // Group by month
-    const statsByMonth = {};
-    completedBooks.forEach(book => {
-      if (book.finishedDate) {
-        const date = new Date(book.finishedDate);
-        const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const loadData = async () => {
+      await getMyBooks();
+      
+      // Get library stats from backend
+      try {
+        const stats = await libraryAPI.getLibraryStats(1); // Replace with actual user ID from auth
+        setLibraryStats(stats);
         
-        if (!statsByMonth[monthYear]) {
-          statsByMonth[monthYear] = { books: 0, pages: 0 };
-        }
-        statsByMonth[monthYear].books += 1;
-        statsByMonth[monthYear].pages += parseInt(book.pages) || 0;
+        // Calculate statistics
+        const completedBooks = myBooks.filter(book => book.status === 'READ');
+        const completedCount = completedBooks.length;
+        const totalPagesRead = completedBooks.reduce((sum, book) => sum + (parseInt(book.pages) || 0), 0);
+        
+        setTotalBooks(completedCount);
+        setTotalPages(totalPagesRead);
+        
+        const goal = 50;
+        const progress = Math.min(Math.round((completedCount / goal) * 100), 100);
+        setGoalProgress(progress);
+        
+        // Group by month for reading stats
+        const statsByMonth = {};
+        completedBooks.forEach(book => {
+          if (book.finishedReading) {
+            const date = new Date(book.finishedReading);
+            const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            if (!statsByMonth[monthYear]) {
+              statsByMonth[monthYear] = { books: 0, pages: 0 };
+            }
+            statsByMonth[monthYear].books += 1;
+            statsByMonth[monthYear].pages += parseInt(book.pages) || 0;
+          }
+        });
+        
+        const statsArray = Object.entries(statsByMonth)
+          .map(([month, data]) => ({ month, ...data }))
+          .sort((a, b) => new Date(b.month) - new Date(a.month))
+          .slice(0, 4);
+        
+        setReadingStats(statsArray);
+      } catch (error) {
+        console.error('Error loading library stats:', error);
       }
-    });
-    
-    const statsArray = Object.entries(statsByMonth)
-      .map(([month, data]) => ({ month, ...data }))
-      .sort((a, b) => new Date(b.month) - new Date(a.month))
-      .slice(0, 4);
-    
-    setReadingStats(statsArray);
-    setTotalBooks(completedCount);
-    setTotalPages(totalPagesRead);
-    
-    const goal = 50;
-    const progress = Math.min(Math.round((completedCount / goal) * 100), 100);
-    setGoalProgress(progress);
-  }, [books]);
+    };
 
-  const filteredBooks = books.filter(book => {
+    loadData();
+  }, [getMyBooks]);
+
+  const filteredBooks = myBooks.filter(book => {
     if (filter === 'all') return true;
     return book.status === filter;
   });
@@ -72,15 +90,17 @@ const MyBooks = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'Reading': { class: 'bg-info', text: 'Reading' },
-      'TBR': { class: 'bg-purple', text: 'TBR' },
-      'Completed': { class: 'bg-success', text: 'Completed' },
-      'DNF': { class: 'bg-warning', text: 'DNF' }
+      'READING': { class: 'bg-warning', text: 'Reading' },
+      'WANT_TO_READ': { class: 'bg-info', text: 'To Read' },
+      'READ': { class: 'bg-success', text: 'Read' },
+      'DROPPED': { class: 'bg-danger', text: 'Dropped' }
     };
     return badges[status] || { class: 'bg-secondary', text: status };
   };
 
   const renderStars = (rating) => {
+    if (!rating || rating === 0) return null;
+    
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalf = rating % 1 >= 0.5;
@@ -97,34 +117,14 @@ const MyBooks = () => {
     return stars;
   };
 
-  const handleMarkAsRead = async (bookId) => {
-    await updateBook(bookId, { 
-      status: 'Completed', 
-      progress: 100,
-      finishedDate: new Date().toISOString()
-    });
-  };
-
-  const handleMarkAsReading = async (bookId) => {
-    await updateBook(bookId, { 
-      status: 'Reading',
-      startedDate: new Date().toISOString()
-    });
-  };
-
-  const handleMarkAsDNF = async (bookId) => {
-    await updateBook(bookId, { 
-      status: 'DNF',
-      finishedDate: new Date().toISOString()
-    });
-  };
-
   const getBookImage = (book) => {
-    if (book.coverUrl) return book.coverUrl;
-    if (book.image) return book.image;
-    if (book.coverId) return getBookCover(book.coverId, 'S');
-    return '/Img/default-book-cover.jpg';
+    if (book.coverId) {
+      return getBookCover(book.coverId, 'S');
+    }
+    return book.image || '/Img/default-book-cover.jpg';
   };
+
+  const statusOptions = ['all', 'WANT_TO_READ', 'READING', 'READ', 'DROPPED'];
 
   return (
     <div className="mybooks-page">
@@ -140,7 +140,7 @@ const MyBooks = () => {
                   <i className="bi bi-bookshelf me-2"></i>
                   My Library
                 </h1>
-                <p className="text-white-80 mb-0">Manage your personal book collection</p>
+                <p className="text-muted mb-0">Manage your personal book collection</p>
               </div>
               <div className="col-md-4 text-md-end">
                 <button 
@@ -156,7 +156,7 @@ const MyBooks = () => {
             {/* Reading Goals Card */}
             <div className="row mb-4">
               <div className="col-12">
-                <div className="card-glass p-4">
+                <div className="card border-0 shadow p-4">
                   <div className="row align-items-center">
                     <div className="col-md-8">
                       <h4 className="text-gradient mb-3">Reading Progress</h4>
@@ -169,7 +169,7 @@ const MyBooks = () => {
                                 a 15.9155 15.9155 0 0 1 0 31.831
                                 a 15.9155 15.9155 0 0 1 0 -31.831"
                               fill="none"
-                              stroke="#eee"
+                              stroke="#e6e6e6"
                               strokeWidth="3"
                             />
                             <path
@@ -178,7 +178,7 @@ const MyBooks = () => {
                                 a 15.9155 15.9155 0 0 1 0 31.831
                                 a 15.9155 15.9155 0 0 1 0 -31.831"
                               fill="none"
-                              stroke="#9b4dff"
+                              stroke="#007bff"
                               strokeWidth="3"
                               strokeDasharray={`${goalProgress}, 100`}
                             />
@@ -189,10 +189,10 @@ const MyBooks = () => {
                         </div>
                         <div>
                           <h5 className="mb-1">{totalBooks} of 50 books completed</h5>
-                          <p className="mb-0 text-white-80">{totalPages.toLocaleString()} total pages read</p>
+                          <p className="mb-0 text-muted">{totalPages.toLocaleString()} total pages read</p>
                           <div className="mt-2">
                             <button 
-                              className="btn btn-sm btn-outline-light"
+                              className="btn btn-sm btn-outline-secondary"
                               onClick={() => navigate('/discover')}
                             >
                               <i className="bi bi-search me-1"></i>
@@ -203,10 +203,10 @@ const MyBooks = () => {
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <div className="card-stat p-3 text-center h-100">
-                        <div className="small text-white-80 mb-1">Total Collection</div>
-                        <h2 className="mb-0 text-white">{books.length}</h2>
-                        <p className="small mb-0 text-white-80">books in your library</p>
+                      <div className="card border p-3 text-center h-100">
+                        <div className="small text-muted mb-1">Total Collection</div>
+                        <h2 className="mb-0">{myBooks.length}</h2>
+                        <p className="small mb-0 text-muted">books in your library</p>
                       </div>
                     </div>
                   </div>
@@ -215,20 +215,20 @@ const MyBooks = () => {
             </div>
 
             {/* Filters and Sort Bar */}
-            <div className="card-glass p-3 mb-4">
+            <div className="card border-0 shadow p-3 mb-4">
               <div className="row align-items-center">
                 <div className="col-md-6">
-                  <div className="btn-group" role="group">
-                    {['all', 'Reading', 'Completed', 'TBR', 'DNF'].map((status) => (
+                  <div className="btn-group flex-wrap" role="group">
+                    {statusOptions.map((status) => (
                       <button
                         key={status}
-                        className={`btn btn-sm ${filter === status ? 'btn-primary' : 'btn-outline-light'}`}
+                        className={`btn btn-sm ${filter === status ? 'btn-primary' : 'btn-outline-secondary'} m-1`}
                         onClick={() => setFilter(status)}
                       >
-                        {status === 'all' ? 'All Books' : status}
+                        {status === 'all' ? 'All Books' : status.replace('_', ' ')}
                         {status !== 'all' && (
                           <span className="badge bg-dark ms-2">
-                            {books.filter(b => b.status === status).length}
+                            {myBooks.filter(b => b.status === status).length}
                           </span>
                         )}
                       </button>
@@ -237,7 +237,7 @@ const MyBooks = () => {
                 </div>
                 <div className="col-md-6 text-md-end mt-2 mt-md-0">
                   <select 
-                    className="form-select form-select-sm bg-dark border-glass text-light d-inline-block w-auto"
+                    className="form-select form-select-sm d-inline-block w-auto"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                   >
@@ -254,11 +254,11 @@ const MyBooks = () => {
             <section>
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h3 className="text-gradient mb-0">
-                  {filter === 'all' ? 'All Books' : filter} ({sortedBooks.length})
+                  {filter === 'all' ? 'All Books' : filter.replace('_', ' ')} ({sortedBooks.length})
                 </h3>
                 {filter !== 'all' && (
                   <button 
-                    className="btn btn-sm btn-outline-light"
+                    className="btn btn-sm btn-outline-secondary"
                     onClick={() => setFilter('all')}
                   >
                     Clear Filter
@@ -266,30 +266,37 @@ const MyBooks = () => {
                 )}
               </div>
               
-              <div className="row g-4">
-                {sortedBooks.length === 0 ? (
-                  <div className="col-12">
-                    <div className="card-glass p-5 text-center">
-                      <i className="bi bi-book" style={{ fontSize: '3rem' }}></i>
-                      <h4 className="mt-3">No books found</h4>
-                      <p>Try changing your filter or add some books to your collection</p>
-                      <button 
-                        className="btn btn-primary mt-3"
-                        onClick={() => navigate('/discover')}
-                      >
-                        <i className="bi bi-search me-2"></i>
-                        Discover Books
-                      </button>
-                    </div>
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
                   </div>
-                ) : (
-                  sortedBooks.map((book) => {
+                  <p className="mt-2 text-muted">Loading your books...</p>
+                </div>
+              ) : sortedBooks.length === 0 ? (
+                <div className="col-12">
+                  <div className="card border-0 shadow p-5 text-center">
+                    <i className="bi bi-book text-muted" style={{ fontSize: '3rem' }}></i>
+                    <h4 className="mt-3">No books found</h4>
+                    <p>Try changing your filter or add some books to your collection</p>
+                    <button 
+                      className="btn btn-primary mt-3"
+                      onClick={() => navigate('/discover')}
+                    >
+                      <i className="bi bi-search me-2"></i>
+                      Discover Books
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="row g-4">
+                  {sortedBooks.map((book) => {
                     const badge = getStatusBadge(book.status);
                     const bookImage = getBookImage(book);
                     
                     return (
-                      <div key={book.id} className="col-md-6 col-lg-4 col-xl-3">
-                        <div className="card card-glass h-100 border-0 hover-lift">
+                      <div key={book.id || book.openLibraryId} className="col-md-6 col-lg-4 col-xl-3">
+                        <div className="card h-100 border-0 shadow-sm">
                           <div className="card-body p-3 d-flex">
                             <img 
                               src={bookImage}
@@ -307,69 +314,30 @@ const MyBooks = () => {
                               }}
                             />
                             <div className="flex-grow-1 d-flex flex-column">
-                              <h6 className="card-title mb-1 text-white">{book.title || 'Untitled Book'}</h6>
-                              <p className="card-text small mb-2 text-white-80">{book.author || 'Unknown Author'}</p>
+                              <h6 className="card-title mb-1">{book.title || 'Untitled Book'}</h6>
+                              <p className="card-text small mb-2 text-muted">{book.author || 'Unknown Author'}</p>
                               <div className="text-warning mb-2 small">
                                 {renderStars(book.userRating || book.rating || 0)}
                               </div>
                               <div className="mt-auto d-flex justify-content-between align-items-center">
                                 <span className={`badge ${badge.class} px-2 py-1`}>{badge.text}</span>
-                                <div className="action-buttons d-flex gap-1">
-                                  {/* Show Reading button only if not already Reading */}
-                                  {book.status !== 'Reading' && (
-                                    <button 
-                                      className="btn btn-sm btn-outline-info"
-                                      onClick={() => handleMarkAsReading(book.id)}
-                                      title="Mark as Reading"
-                                    >
-                                      <i className="bi bi-play-circle"></i>
-                                    </button>
-                                  )}
-                                  
-                                  {/* Show DNF button only if not already DNF */}
-                                  {book.status !== 'DNF' && (
-                                    <button 
-                                      className="btn btn-sm btn-outline-warning"
-                                      onClick={() => handleMarkAsDNF(book.id)}
-                                      title="Mark as Did Not Finish"
-                                    >
-                                      <i className="bi bi-x-circle"></i>
-                                    </button>
-                                  )}
-                                  
-                                  {/* Show Complete button only if not already Completed */}
-                                  {book.status !== 'Completed' && (
-                                    <button 
-                                      className="btn btn-sm btn-outline-success"
-                                      onClick={() => handleMarkAsRead(book.id)}
-                                      title="Mark as Completed"
-                                    >
-                                      <i className="bi bi-check-circle"></i>
-                                    </button>
-                                  )}
-                                  
-                                  {/* Always show Delete button */}
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => {
-                                      if (window.confirm('Are you sure you want to delete this book?')) {
-                                        deleteBook(book.id);
-                                      }
-                                    }}
-                                    title="Delete book"
-                                  >
-                                    <i className="bi bi-trash"></i>
-                                  </button>
-                                </div>
+                                {book.currentPage && book.pages && (
+                                  <div className="progress" style={{ width: '60px', height: '4px' }}>
+                                    <div 
+                                      className="progress-bar" 
+                                      style={{ width: `${(book.currentPage / book.pages) * 100}%` }}
+                                    ></div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              )}
             </section>
           </div>
         </main>

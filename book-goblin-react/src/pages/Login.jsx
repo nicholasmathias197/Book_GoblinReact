@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(usernameOrEmail, password);
       if (result.success) {
         navigate('/dashboard');
       } else {
@@ -54,36 +54,31 @@ const Login = () => {
                       )}
                       
                       <div className="mb-3">
-                        <label htmlFor="email" className="form-label text-light">Email Address</label>
+                        <label htmlFor="usernameOrEmail" className="form-label">Username or Email</label>
                         <input
-                          type="email"
-                          id="email"
-                          className="form-control form-control-dark"
-                          placeholder="reader@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          type="text"
+                          id="usernameOrEmail"
+                          className="form-control"
+                          placeholder="Enter username or email"
+                          value={usernameOrEmail}
+                          onChange={(e) => setUsernameOrEmail(e.target.value)}
                           required
                           disabled={loading}
                         />
                       </div>
                       
                       <div className="mb-4">
-                        <label htmlFor="password" className="form-label text-light">Password</label>
+                        <label htmlFor="password" className="form-label">Password</label>
                         <input
                           type="password"
                           id="password"
-                          className="form-control form-control-dark"
+                          className="form-control"
                           placeholder="Enter your password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
                           disabled={loading}
                         />
-                        <div className="text-end mt-2">
-                          <a href="#" className="text-decoration-none text-purple small">
-                            Forgot password?
-                          </a>
-                        </div>
                       </div>
                       
                       <div className="mb-4">
@@ -96,7 +91,7 @@ const Login = () => {
                             onChange={(e) => setRememberMe(e.target.checked)}
                             disabled={loading}
                           />
-                          <label htmlFor="remember" className="form-check-label text-light">
+                          <label htmlFor="remember" className="form-check-label">
                             Remember me
                           </label>
                         </div>
@@ -104,7 +99,7 @@ const Login = () => {
                       
                       <button 
                         type="submit" 
-                        className="btn btn-gradient w-100 py-3 mb-4"
+                        className="btn btn-primary w-100 py-3 mb-4"
                         disabled={loading}
                       >
                         {loading ? (
@@ -121,53 +116,28 @@ const Login = () => {
                       </button>
                     </form>
                     
-                    {/* Social Login */}
-                    <div className="text-center mb-4">
-                      <p className="text-muted mb-3">Or sign in with</p>
-                      <div className="d-flex gap-3">
-                        <button 
-                          className="btn btn-outline-light flex-grow-1"
-                          disabled={loading}
-                        >
-                          <i className="bi bi-google me-2"></i>Google
-                        </button>
-                        <button 
-                          className="btn btn-outline-light flex-grow-1"
-                          disabled={loading}
-                        >
-                          <i className="bi bi-github me-2"></i>GitHub
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Links */}
                     <div className="text-center">
                       <p className="mb-2">
                         Don't have an account? 
-                        <Link to="/register" className="text-decoration-none text-purple ms-1">
+                        <Link to="/register" className="text-decoration-none text-primary ms-1">
                           Sign up here
                         </Link>
-                      </p>
-                      <p className="mb-0 small text-muted">
-                        By signing in, you agree to our 
-                        <a href="#" className="text-decoration-none text-muted ms-1">Terms of Service</a> and 
-                        <a href="#" className="text-decoration-none text-muted ms-1">Privacy Policy</a>
                       </p>
                     </div>
                   </div>
                 </div>
                 
                 {/* Image Side */}
-                <div className="col-lg-6 bg-gradient-primary d-none d-lg-flex align-items-center justify-content-center p-5">
-                  <div className="text-center text-white">
+                <div className="col-lg-6 bg-primary bg-gradient d-none d-lg-flex align-items-center justify-content-center p-5 text-white">
+                  <div className="text-center">
                     <img 
-                      src="Img/Searching%20Goblin.png" 
+                      src="/Img/Searching Goblin.png" 
                       alt="Searching Goblin" 
                       className="img-fluid mb-4 rounded-4"
                       style={{ maxWidth: '300px' }}
                     />
                     <h3 className="h4 mb-3">Your Reading Journey Awaits</h3>
-                    <p className="mb-0">Track your books, discover new favorites, and connect with fellow readers.</p>
+                    <p className="mb-0">Track your books, discover new favorites, and build your personal library.</p>
                   </div>
                 </div>
               </div>

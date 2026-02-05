@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 
-const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "Featured Books" }) => {
+const BookCarousel = ({ 
+  books = [], 
+  getCover, 
+  onBookClick, 
+  onAddToLibrary,
+  title = "Featured Books",
+  showAddButton = false,
+  emptyMessage = "No books available"
+}) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrev = () => {
@@ -14,12 +22,19 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
   if (books.length === 0) {
     return (
       <div className="text-center p-5">
-        <p className="text">No recommendations available</p>
+        <p className="text-muted">{emptyMessage}</p>
       </div>
     );
   }
 
   const currentBook = books[activeIndex];
+
+  const getCoverImage = (book) => {
+    if (book.coverId) {
+      return getCover ? getCover(book.coverId) : '/Img/default-book-cover.jpg';
+    }
+    return book.image || '/Img/default-book-cover.jpg';
+  };
 
   return (
     <div className="carousel-container">
@@ -29,12 +44,12 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
         <div className="carousel-inner rounded-4 overflow-hidden">
           {books.map((book, index) => (
             <div
-              key={book.id || book.key || index}
+              key={book.id || book.openLibraryId || index}
               className={`carousel-item ${index === activeIndex ? 'active' : ''}`}
             >
               <div className="d-flex justify-content-start position-relative">
                 <img
-                  src={getCover ? getCover(book.coverId) : book.image || '/Img/default-book-cover.jpg'}
+                  src={getCoverImage(book)}
                   className="d-block"
                   alt={book.title}
                   style={{ 
@@ -51,8 +66,8 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
                   }}
                 />
                 
-                {/* Add to List Button - Top Right */}
-                {onAddBook && (
+                {/* Add to Library Button */}
+                {showAddButton && onAddToLibrary && (
                   <button
                     className="btn btn-primary position-absolute"
                     style={{
@@ -65,12 +80,12 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onAddBook(book);
+                      onAddToLibrary(book);
                     }}
                     title="Add to My Books"
                   >
                     <i className="bi bi-plus-circle me-1"></i>
-                    Add to List
+                    Add to Library
                   </button>
                 )}
                 
@@ -96,6 +111,13 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
                     {book.pages && (
                       <span className="badge bg-info">{book.pages} pages</span>
                     )}
+                    {book.status && (
+                      <span className={`badge ${book.status === 'READING' ? 'bg-warning' : 
+                                         book.status === 'READ' ? 'bg-success' : 
+                                         'bg-primary'}`}>
+                        {book.status.replace('_', ' ')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -103,41 +125,47 @@ const BookCarousel = ({ books = [], getCover, onBookClick, onAddBook, title = "F
           ))}
         </div>
         
-        <button
-          className="carousel-control-prev"
-          type="button"
-          onClick={handlePrev}
-        >
-          <span className="carousel-control-prev-icon"></span>
-        </button>
-        <button
-          className="carousel-control-next"
-          type="button"
-          onClick={handleNext}
-        >
-          <span className="carousel-control-next-icon"></span>
-        </button>
+        {books.length > 1 && (
+          <>
+            <button
+              className="carousel-control-prev"
+              type="button"
+              onClick={handlePrev}
+            >
+              <span className="carousel-control-prev-icon"></span>
+            </button>
+            <button
+              className="carousel-control-next"
+              type="button"
+              onClick={handleNext}
+            >
+              <span className="carousel-control-next-icon"></span>
+            </button>
+          </>
+        )}
       </div>
       
       {/* Carousel Indicators */}
-      <div className="carousel-indicators mt-3 d-flex justify-content-center">
-        {books.map((_, index) => (
-          <button
-            key={index}
-            type="button"
-            className={`carousel-indicator mx-1 ${index === activeIndex ? 'active' : ''}`}
-            onClick={() => setActiveIndex(index)}
-            aria-label={`Slide ${index + 1}`}
-            style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              border: '1px solid #fff',
-              backgroundColor: index === activeIndex ? '#fff' : 'transparent'
-            }}
-          ></button>
-        ))}
-      </div>
+      {books.length > 1 && (
+        <div className="carousel-indicators mt-3 d-flex justify-content-center">
+          {books.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`carousel-indicator mx-1 ${index === activeIndex ? 'active' : ''}`}
+              onClick={() => setActiveIndex(index)}
+              aria-label={`Slide ${index + 1}`}
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                border: '1px solid #fff',
+                backgroundColor: index === activeIndex ? '#fff' : 'transparent'
+              }}
+            ></button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

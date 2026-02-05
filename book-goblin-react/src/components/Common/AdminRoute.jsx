@@ -1,26 +1,21 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
 const AdminRoute = ({ children }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'admin') {
-    return <Navigate to="/dashboard" />;
+  if (!isAdmin()) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

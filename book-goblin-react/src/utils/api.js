@@ -1,105 +1,199 @@
-const API_BASE_URL = 'https://openlibrary.org';
+// Base URL for your Spring Boot backend
+const API_BASE_URL = 'http://localhost:8080/api';
 
-export const searchBooks = async (query, options = {}) => {
-  const params = new URLSearchParams({
-    q: query,
-    limit: options.limit || 10,
-    page: options.page || 1,
-    fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,number_of_pages_median,subject,language,isbn,ia,ratings_average,ratings_count',
-    ...options
-  });
-
+// Helper function for making API requests
+const apiRequest = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('token');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const config = {
+    ...options,
+    headers,
+  };
+  
   try {
-    const response = await fetch(`${API_BASE_URL}/search.json?${params}`);
-    if (!response.ok) throw new Error('Network response was not ok');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+      const error = await response.json();
+      throw new Error(error.message || 'API request failed');
+    }
     
     const data = await response.json();
-    return data.docs.map(doc => ({
-      id: doc.key,
-      title: doc.title,
-      author: doc.author_name?.[0] || 'Unknown Author',
-      genre: doc.subject?.[0] || 'General',
-      publishedYear: doc.first_publish_year,
-      pages: doc.number_of_pages_median,
-      coverId: doc.cover_i,
-      isbn: doc.isbn?.[0],
-      editionCount: doc.edition_count,
-      availableOnline: doc.ia && doc.ia.length > 0,
-      openLibraryKey: doc.key,
-      rating: doc.ratings_average || 0,
-      ratingCount: doc.ratings_count || 0,
-      language: doc.language?.[0] || 'en'
-    }));
+    return data.data || data;
   } catch (error) {
-    console.error('Error searching books:', error);
-    return [];
+    console.error(`API Error (${endpoint}):`, error);
+    throw error;
   }
 };
 
-export const getBookDetails = async (bookId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${bookId}.json`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const data = await response.json();
-    return {
-      ...data,
-      description: data.description?.value || data.description || 'No description available',
-      covers: data.covers || []
-    };
-  } catch (error) {
-    console.error('Error fetching book details:', error);
-    return null;
-  }
+// Auth API
+export const authAPI = {
+  register: async (userData) => {
+    return apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+  
+  login: async (credentials) => {
+    return apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+  
+  getProfile: async () => {
+    return apiRequest('/users/me');
+  },
+  
+  updateProfile: async (userId, userData) => {
+    return apiRequest(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  },
+  
+  updatePassword: async (userId, oldPassword, newPassword) => {
+    return apiRequest(`/users/${userId}/password?oldPassword=${encodeURIComponent(oldPassword)}&newPassword=${encodeURIComponent(newPassword)}`, {
+      method: 'PUT',
+    });
+  },
 };
 
-export const getBookCover = (coverId, size = 'M') => {
-  if (!coverId) return '/Img/default-book-cover.jpg';
-  return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`;
+// Books API
+export const booksAPI = {
+  searchBooks: async (query, page = 1, limit = 10) => {
+    return apiRequest(`/books/search?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+  },
+  
+  getBookDetails: async (bookId) => {
+    return apiRequest(`/books/${bookId}`);
+  },
+  
+  getBookByISBN: async (isbn) => {
+    return apiRequest(`/books/isbn/${isbn}`);
+  },
+  
+  getTrendingBooks: async () => {
+    return apiRequest('/books/trending');
+  },
+  
+  // Get book cover URL (still uses OpenLibrary for covers)
+  getBookCover: (coverId, size = 'M') => {
+    if (!coverId) return '/Img/default-book-cover.jpg';
+    return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`;
+  },
 };
 
-export const getAuthorDetails = async (authorId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${authorId}.json`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const data = await response.json();
-    return {
-      name: data.name,
-      bio: data.bio?.value || data.bio || 'No biography available',
-      photos: data.photos || []
-    };
-  } catch (error) {
-    console.error('Error fetching author details:', error);
-    return null;
-  }
+// Library API
+export const libraryAPI = {
+  getMyBooks: async (status = null) => {
+    const url = status ? `/library/my-books?status=${status}` : '/library/my-books';
+    return apiRequest(url);
+  },
+  
+  addBookToLibrary: async (bookData) => {
+    return apiRequest('/library/add', {
+      method: 'POST',
+      body: JSON.stringify(bookData),
+    });
+  },
+  
+  updateReadingProgress: async (userBookId, currentPage) => {
+    return apiRequest(`/library/progress/${userBookId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ currentPage }),
+    });
+  },
+  
+  getLibraryStats: async (userId) => {
+    return apiRequest(`/library/stats/${userId}`);
+  },
+  
+  getCurrentlyReading: async (userId) => {
+    return apiRequest(`/library/currently-reading/${userId}`);
+  },
 };
 
-export const getTrendingBooks = async () => {
-  return searchBooks('fantasy OR science fiction OR mystery', {
-    limit: 12,
-    sort: 'rating desc'
-  });
+// Admin API
+export const adminAPI = {
+  getStats: async () => {
+    return apiRequest('/admin/stats');
+  },
+  
+  getAllUsers: async (page = 0, size = 10) => {
+    return apiRequest(`/admin/users?page=${page}&size=${size}`);
+  },
+  
+  updateUserRole: async (userId, role) => {
+    return apiRequest(`/admin/users/${userId}/role?role=${role}`, {
+      method: 'PUT',
+    });
+  },
+  
+  deactivateUser: async (userId) => {
+    return apiRequest(`/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+  
+  getActivityLogs: async (page = 0, size = 50) => {
+    return apiRequest(`/admin/logs?page=${page}&size=${size}`);
+  },
+  
+  moderateContent: async (contentId, action) => {
+    return apiRequest(`/admin/content/${contentId}/moderate?action=${action}`, {
+      method: 'POST',
+    });
+  },
 };
 
-export const getBookByISBN = async (isbn) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/isbn/${isbn}.json`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const data = await response.json();
-    return {
-      id: data.key,
-      title: data.title,
-      author: data.authors?.[0]?.name || 'Unknown Author',
-      pages: data.number_of_pages,
-      coverId: data.covers?.[0],
-      isbn: isbn,
-      publishedYear: data.publish_date?.split('-')[0],
-      description: data.description?.value || data.description
-    };
-  } catch (error) {
-    console.error('Error fetching book by ISBN:', error);
-    return null;
-  }
+// User API
+export const userAPI = {
+  getUserById: async (userId) => {
+    return apiRequest(`/users/${userId}`);
+  },
+  
+  searchUsers: async (query) => {
+    return apiRequest(`/users/search?query=${encodeURIComponent(query)}`);
+  },
+  
+  getAllUsers: async (page = 0, size = 10, sortBy = 'id', sortDirection = 'asc') => {
+    return apiRequest(`/users?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`);
+  },
+};
+
+// Activity API
+export const activityAPI = {
+  getUserActivities: async (userId, page = 0, size = 20) => {
+    return apiRequest(`/activities/user/${userId}?page=${page}&size=${size}`);
+  },
+  
+  getAllActivities: async (page = 0, size = 50) => {
+    return apiRequest(`/activities?page=${page}&size=${size}`);
+  },
+};
+
+export default {
+  auth: authAPI,
+  books: booksAPI,
+  library: libraryAPI,
+  admin: adminAPI,
+  user: userAPI,
+  activity: activityAPI,
 };

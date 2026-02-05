@@ -2,6 +2,7 @@ package com.bookgoblin.service;
 
 import com.bookgoblin.exception.UserNotFoundException;
 import com.bookgoblin.model.dto.response.UserResponse;
+import com.bookgoblin.model.entity.ActivityLog;
 import com.bookgoblin.model.entity.User;
 import com.bookgoblin.repository.ActivityLogRepository;
 import com.bookgoblin.repository.LibraryRepository;
@@ -111,6 +112,16 @@ public class UserService {
                 com.bookgoblin.model.enums.ActivityType.USER_MANAGED,
                 "User deleted by admin"
         );
+    }
+
+    // ADD THIS METHOD - it was missing
+    public Page<ActivityLog> getUserActivities(Long userId, Pageable pageable) {
+        // First check if user exists
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
+
+        return activityLogRepository.findByUserId(userId, pageable);
     }
 
     public UserResponse toUserResponse(User user) {

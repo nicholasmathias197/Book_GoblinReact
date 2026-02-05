@@ -103,5 +103,6 @@ public class AdminController {
         var logs = userService.getUserActivities(admin.getId(), pageable);
 
         return ResponseEntity.ok(ApiResponse.success("Activity logs retrieved", logs));
+
     }
 }

@@ -44,8 +44,13 @@ const Register = () => {
       return false;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+    if (formData.username.length < 3) {
+      setError('Username must be at least 3 characters');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
       return false;
     }
 
@@ -56,11 +61,6 @@ const Register = () => {
 
     if (!agreeTerms) {
       setError('You must agree to the terms and conditions');
-      return false;
-    }
-
-    if (selectedGenres.length === 0) {
-      setError('Please select at least one genre');
       return false;
     }
 
@@ -81,11 +81,7 @@ const Register = () => {
       const userData = {
         username: formData.username,
         email: formData.email,
-        password: formData.password,
-        preferences: {
-          genres: selectedGenres,
-          readingGoal: 52
-        }
+        password: formData.password
       };
 
       const result = await register(userData);
@@ -139,12 +135,12 @@ const Register = () => {
                       )}
                       
                       <div className="mb-3">
-                        <label htmlFor="username" className="form-label text-light">Username</label>
+                        <label htmlFor="username" className="form-label">Username</label>
                         <input
                           type="text"
                           id="username"
                           name="username"
-                          className="form-control form-control-dark"
+                          className="form-control"
                           placeholder="Choose a username"
                           value={formData.username}
                           onChange={handleInputChange}
@@ -154,12 +150,12 @@ const Register = () => {
                       </div>
                       
                       <div className="mb-3">
-                        <label htmlFor="email" className="form-label text-light">Email Address</label>
+                        <label htmlFor="email" className="form-label">Email Address</label>
                         <input
                           type="email"
                           id="email"
                           name="email"
-                          className="form-control form-control-dark"
+                          className="form-control"
                           placeholder="reader@example.com"
                           value={formData.email}
                           onChange={handleInputChange}
@@ -169,12 +165,12 @@ const Register = () => {
                       </div>
                       
                       <div className="mb-3">
-                        <label htmlFor="password" className="form-label text-light">Password</label>
+                        <label htmlFor="password" className="form-label">Password</label>
                         <input
                           type="password"
                           id="password"
                           name="password"
-                          className="form-control form-control-dark"
+                          className="form-control"
                           placeholder="Create a strong password"
                           value={formData.password}
                           onChange={handleInputChange}
@@ -203,12 +199,12 @@ const Register = () => {
                       </div>
                       
                       <div className="mb-4">
-                        <label htmlFor="confirmPassword" className="form-label text-light">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
                         <input
                           type="password"
                           id="confirmPassword"
                           name="confirmPassword"
-                          className={`form-control form-control-dark ${
+                          className={`form-control ${
                             formData.confirmPassword && 
                             formData.password !== formData.confirmPassword ? 'is-invalid' : ''
                           }`}
@@ -223,9 +219,9 @@ const Register = () => {
                         )}
                       </div>
                       
-                      {/* Genres */}
+                      {/* Genres (Optional) */}
                       <div className="mb-4">
-                        <label className="form-label text-light">Favorite Genres</label>
+                        <label className="form-label">Favorite Genres (Optional)</label>
                         <p className="text-muted small mb-3">
                           Select genres to personalize your recommendations
                         </p>
@@ -234,8 +230,8 @@ const Register = () => {
                             <div key={genre} className="col-6">
                               <button
                                 type="button"
-                                className={`genre-tag w-100 ${
-                                  selectedGenres.includes(genre) ? 'selected' : ''
+                                className={`btn w-100 ${
+                                  selectedGenres.includes(genre) ? 'btn-primary' : 'btn-outline-secondary'
                                 }`}
                                 onClick={() => toggleGenre(genre)}
                                 disabled={loading}
@@ -263,18 +259,18 @@ const Register = () => {
                             onChange={(e) => setAgreeTerms(e.target.checked)}
                             disabled={loading}
                           />
-                          <label htmlFor="terms" className="form-check-label text-light small">
+                          <label htmlFor="terms" className="form-check-label small">
                             I agree to the 
-                            <a href="#" className="text-purple text-decoration-none ms-1">Terms of Service</a> 
+                            <a href="#" className="text-primary text-decoration-none ms-1">Terms of Service</a> 
                             and 
-                            <a href="#" className="text-purple text-decoration-none ms-1">Privacy Policy</a>
+                            <a href="#" className="text-primary text-decoration-none ms-1">Privacy Policy</a>
                           </label>
                         </div>
                       </div>
                       
                       <button 
                         type="submit" 
-                        className="btn btn-gradient w-100 py-3 mb-4"
+                        className="btn btn-primary w-100 py-3 mb-4"
                         disabled={loading}
                       >
                         {loading ? (
@@ -291,30 +287,10 @@ const Register = () => {
                       </button>
                     </form>
                     
-                    {/* Social Register */}
-                    <div className="text-center mb-4">
-                      <p className="text-muted mb-3">Or sign up with</p>
-                      <div className="d-flex gap-3">
-                        <button 
-                          className="btn btn-outline-light flex-grow-1"
-                          disabled={loading}
-                        >
-                          <i className="bi bi-google me-2"></i>Google
-                        </button>
-                        <button 
-                          className="btn btn-outline-light flex-grow-1"
-                          disabled={loading}
-                        >
-                          <i className="bi bi-github me-2"></i>GitHub
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Links */}
                     <div className="text-center">
                       <p className="mb-2">
                         Already have an account? 
-                        <Link to="/login" className="text-decoration-none text-purple ms-1">
+                        <Link to="/login" className="text-decoration-none text-primary ms-1">
                           Sign in here
                         </Link>
                       </p>
@@ -323,17 +299,17 @@ const Register = () => {
                 </div>
                 
                 {/* Image Side */}
-                <div className="col-lg-6 bg-gradient-primary d-none d-lg-flex align-items-center justify-content-center p-5">
-                  <div className="text-center text-white">
+                <div className="col-lg-6 bg-primary bg-gradient d-none d-lg-flex align-items-center justify-content-center p-5 text-white">
+                  <div className="text-center">
                     <img 
-                      src="Img/Searching%20Goblin.png" 
+                      src="/Img/Searching Goblin.png" 
                       alt="Searching Goblin" 
                       className="img-fluid mb-4 rounded-4"
                       style={{ maxWidth: '300px' }}
                     />
                     <h3 className="h4 mb-3">Discover Your Next Favorite</h3>
                     <p className="mb-0">
-                      Tell us your reading preferences and we'll help you discover books tailored to your taste.
+                      Create your account to start building your personal library and discover new books.
                     </p>
                   </div>
                 </div>
