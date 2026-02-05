@@ -13,26 +13,37 @@ spring:
   application:
     name: book-goblin-backend
 
-  # Database configuration
+  # Database configuration - MySQL
   datasource:
-    url: jdbc:postgresql://localhost:5432/bookgoblin
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://localhost:3306/bookgoblin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
+    username: root  # Change to your MySQL username
+    password: password  # Change to your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
-  # JPA configuration
+  # JPA configuration for MySQL
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # For production, use 'validate' or 'none' instead
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect  # Changed to MySQL dialect
         format_sql: true
         jdbc:
           batch_size: 20
+          batch_versioned_data: true
         order_inserts: true
         order_updates: true
+        connection:
+          charset: utf8mb4
+          autocommit: false
+    open-in-view: false
 
   # Cache configuration
   cache:
@@ -64,7 +75,7 @@ cors:
 # JWT configuration
 jwt:
   header: Authorization
-  base64-secret: T9GKvpb3oX5qqo3sd6+OJ2iqldexr32h7FHMpkgON+6yAtr2gfJOQkjt4mR9b7rCPL3wip8vgXzkr2LOpbAnitVQvHnIO2tlaQdnPo+xc10/KtcEBDMQV6nPn41+ScZ9wbvTIQn2+FUoJkQhXFcWRe4r4CbDKzZ73Z4ZyhMmJ4n8crYDl7dR3XjScLq4sO0BXYHK1qj6u7JPABoqQXv83uycysTt/TtDIxSl5r5+M7U/99hHvdLmfWBUlCoorhGodggZow/6qlSql7jRLENwebcxrd9Ggxaf5BA+oR6FJ1gwCEIPOoSs+Cbk7SQwIgOIw8Xmmn+nbZzPoDugv80Diy/QRUQ0rs/F8lgBG8P3dq7mLWaJknSlOquxBCcnkBaMHvtPARqrnNhlfXl5pTXvuGl+wbwDLi5WGOb0go+b+gv2Z/xtOu72t41sf/PjNkDQPiCzoSmagQA/aRAg2z5Mfewl16eeB96h8MHeDUjSzsVNpw8/NySUnVbRKXjxeZG2P6IsRoGMPeufEz/2uexIvoLCb76t+IjCDWwwdULrofFFMyb2wv3+7mpTlCkyAJp5x7SMFiBjqGRfa1Ziy1iq8uHxzVLJTKZp0w2EDzGI/uvn95b8gEtckWFkPmACi7ESXxVDRgWEFHW6Hr742uPl6walIEEZvxbIrgpaszaSonM=
+  base64-secret: T9GKvpb3oX5qqo3sd6+OJ2iqldexr32h7FHMpkgON+6yAtr2gfJOQkjt4mR9b7rCPL3wip8vgXzkr2LOpbAnitVQvHnIO2tlaQdnPo+xc10/KtcEBDMQV6nPn41+ScZ9wbvTIQn2+FUoJkQhXFcWRe4r4CbDKzZ73Z4ZyhMmJ4n8crYDl7dR3XjScLq4sO0BXYHK1qj6u7JPABoqQXv83uycysTt/TtDIxSl5r5+M7U/99hHvdLmfWBUlCoorhGodggZow/6qlSql7jRLENwebcxrd9Ggxaf5BA+oR6FJ1gwCEIPOoSs+Cbk7SQwIgOIw8Xmmn+nbZzPoDugv80Djy/QRUQ0rs/F8lgBG8P3dq7mLWaJknSlOquxBCcnkBaMHvtPARqrnNhlfXl5pTXvuGl+wbwDLi5WGOb0go+b+gv2Z/xtOu72t41sf/PjNkDQPiCzoSmagQA/aRAg2z5Mfewl16eeB96h8MHeDUjSzsVNpw8/NySUnVbRKXjxeZG2P6IsRoGMPeufEz/2uexIvoLCb76t+IjCDWwwdULrofFFMyb2wv3+7mpTlCkyAJp5x7SMFiBjqGRfa1Ziy1iq8uHxzVLJTKZp0w2EDzGI/uvn95b8gEtckWFkPmACi7ESXxVDRgWEFHW6Hr742uPl6walIEEZvxbIrgpaszaSonM=
   secret: BookGoblinSecret
   secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000  # 24 hours in milliseconds
@@ -98,6 +109,8 @@ logging:
     com.bookgoblin: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
